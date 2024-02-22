@@ -13,8 +13,8 @@ func main() {
         ServerID:  2000,
         MysqlDNS:  "root:123456@tcp(127.0.0.1:3306)/test?charset=utf8mb4",
         Logger:    logrus.New(),
-        NewLatest: true,             // 是否使用最新位置
-        Tables:    []string{"test"}, // 过滤表
+        NewLatest: true,       // 是否使用最新位置
+        Tables:    []string{}, // 过滤表
     }
 
     s, err := gomysqlsync.NewServer(c)

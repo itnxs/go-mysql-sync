@@ -70,7 +70,7 @@ func (h *eventHandler) checkTable(table string) bool {
     return ok
 }
 
-// isAction 验证数据更新操作类型
+// checkAction 验证数据更新操作类型
 func (h *eventHandler) checkAction(action string) bool {
     switch action {
     case canal.InsertAction, canal.UpdateAction, canal.DeleteAction:
@@ -93,24 +93,17 @@ func (h *eventHandler) OnRow(e *canal.RowsEvent) error {
         return nil
     }
 
-    rows := make([]map[string]interface{}, 0)
-    for _, v := range e.Rows {
-        row := make(map[string]interface{})
-        for i, c := range e.Table.Columns {
-            if vv, ok := v[i].([]byte); ok {
-                row[c.Name] = string(vv)
-            } else {
-                row[c.Name] = v[i]
-            }
+    row := e.Rows[len(e.Rows)-1]
+    data := make(map[string]interface{})
+    for i, c := range e.Table.Columns {
+        if vv, ok := row[i].([]byte); ok {
+            data[c.Name] = string(vv)
+        } else {
+            data[c.Name] = row[i]
         }
-        rows = append(rows, row)
     }
 
-    return h.onMessage(Message{
-        Action: e.Action,
-        Table:  table,
-        Data:   rows[0],
-    })
+    return h.onMessage(Message{Action: e.Action, Table: table, Data: data})
 }
 
 // OnPosSynced 位置更新处理
