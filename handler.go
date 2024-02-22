@@ -15,9 +15,9 @@ import (
 
 // Message 消息内容
 type Message struct {
-    Action string                   `json:"action"`
-    Table  string                   `json:"table"`
-    Data   []map[string]interface{} `json:"data"`
+    Action string                 `json:"action"`
+    Table  string                 `json:"table"`
+    Data   map[string]interface{} `json:"data"`
 }
 
 // OnMessage 消息处理
@@ -88,6 +88,9 @@ func (h *eventHandler) OnRow(e *canal.RowsEvent) error {
     } else if !h.checkTable(table) {
         h.logger.WithField("table", e.Table).Debug("table skip")
         return nil
+    } else if len(e.Rows) <= 0 {
+        h.logger.WithField("table", e.Table).Debug("rows empty")
+        return nil
     }
 
     rows := make([]map[string]interface{}, 0)
@@ -106,7 +109,7 @@ func (h *eventHandler) OnRow(e *canal.RowsEvent) error {
     return h.onMessage(Message{
         Action: e.Action,
         Table:  table,
-        Data:   rows,
+        Data:   rows[0],
     })
 }
 
