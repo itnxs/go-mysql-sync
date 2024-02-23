@@ -7,16 +7,16 @@ import (
     "github.com/sirupsen/logrus"
 )
 
-// Server server
-type Server struct {
+// CanalServer 订阅服务
+type CanalServer struct {
     canal   *canal.Canal
     config  *Config
     handler *eventHandler
     logger  logrus.FieldLogger
 }
 
-// NewServer new server
-func NewServer(c *Config) (*Server, error) {
+// NewCanalServer 新建订阅服务
+func NewCanalServer(c *Config) (*CanalServer, error) {
     if err := c.init(); err != nil {
         return nil, err
     }
@@ -32,7 +32,7 @@ func NewServer(c *Config) (*Server, error) {
         return nil, errors.Wrap(err, "new event handler")
     }
 
-    server := &Server{
+    server := &CanalServer{
         config:  c,
         canal:   cc,
         handler: handler,
@@ -43,25 +43,25 @@ func NewServer(c *Config) (*Server, error) {
 }
 
 // SetStore 设置存储
-func (s *Server) SetStore(store BinLogStore) *Server {
+func (s *CanalServer) SetStore(store BinLogStore) *CanalServer {
     s.handler.store = store
     return s
 }
 
-// OnMessage 接受消息处理
-func (s *Server) OnMessage(callback OnMessage) *Server {
+// OnMessage 接受消息
+func (s *CanalServer) OnMessage(callback OnMessage) *CanalServer {
     s.handler.onMessage = callback
     return s
 }
 
 // Close 关闭服务
-func (s *Server) Close() {
+func (s *CanalServer) Close() {
     s.logger.Info("close canal server")
     s.canal.Close()
 }
 
 // Start 开始运行
-func (s *Server) Start() error {
+func (s *CanalServer) Start() error {
     s.logger.Info("start canal server")
 
     if err := s.binlogInit(); err != nil {
@@ -95,13 +95,13 @@ func (s *Server) Start() error {
 }
 
 // binlogInit binlog位置初始化
-func (s *Server) binlogInit() error {
+func (s *CanalServer) binlogInit() error {
     if s.handler.store.Exists() {
         s.logger.Info("binlog store exists")
         return nil
     }
 
-    if !s.config.NewLatest {
+    if s.config.Dump {
         s.logger.WithField("tables", s.config.Tables).Info("execute command dump")
         defer s.logger.WithField("tables", s.config.Tables).Info("execute command dump done")
         return s.canal.Dump()
