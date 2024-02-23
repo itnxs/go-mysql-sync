@@ -11,7 +11,7 @@ import (
 func main() {
     c := &gomysqlsync.Config{
         ServerID: 2000,
-        MysqlDNS: "root:123456@tcp(127.0.0.1:3306)/sys?charset=utf8mb4",
+        MysqlDNS: "root:123456@tcp(127.0.0.1:3306)/test?charset=utf8mb4",
         Logger:   logrus.New(),
         Dump:     true,       // 是否导出历史数据
         Tables:   []string{}, // 过滤表
