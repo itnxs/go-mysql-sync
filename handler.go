@@ -28,6 +28,7 @@ type eventHandler struct {
     logger    logrus.FieldLogger
     config    *Config
     store     BinLogStore
+    dbName    string
     tables    map[string]interface{}
     mutex     sync.RWMutex
     onMessage OnMessage
@@ -45,6 +46,7 @@ func newEventHandler(store BinLogStore, c *Config) (*eventHandler, error) {
         logger: c.Logger,
         config: c,
         store:  store,
+        dbName: c.driverConfig.DBName,
         tables: tables,
         onMessage: func(m Message) error {
             c.Logger.WithField("data", m).Info("onMessage")
@@ -55,6 +57,9 @@ func newEventHandler(store BinLogStore, c *Config) (*eventHandler, error) {
 
 // checkTable 验证表名称
 func (h *eventHandler) checkTable(table string) bool {
+    if len(h.dbName) <= 0 || !strings.HasPrefix(table, h.dbName) {
+        return false
+    }
     if len(h.tables) <= 0 {
         return true
     }
